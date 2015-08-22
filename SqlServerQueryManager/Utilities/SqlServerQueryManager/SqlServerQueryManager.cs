@@ -49,18 +49,7 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
       }
     }
 
-    private static CommandType _commandType = CommandType.StoredProcedure;
-    public static CommandType CommandType
-    {
-      get
-      {
-        return _commandType;
-      }
-      set
-      {
-        _commandType = value;
-      }
-    }
+    public static CommandType CommandType { get; set; } = CommandType.StoredProcedure;
 
     private static TimeSpan _commandTimeout = TimeSpan.FromSeconds(30);
     public static TimeSpan CommandTimeout
@@ -83,51 +72,197 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
 
     #region Sync Methods
 
-    public static IEnumerable<TResult> SelectToObjects<TResult>(string query, Func<IDataRecord, TResult> rowMap, params SqlParameter[] queryParameters)
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result and convert each row to an object of type <typeparamref name="TResult"/> using the 
+    /// <paramref name="rowMap"/> function. The current options set on  will be used.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the individual result items returned.</typeparam>
+    /// <param name="query">Query to execute. This must be a query with single SELECT result.</param>
+    /// <param name="rowMap">
+    /// Function that takes an arguement of type IDataRecord and returns <typeparamref name="TResult"/>.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>List of <typeparamref name="TResult"/></returns>
+    public static IList<TResult> SelectToObjects<TResult>(string query, Func<IDataRecord, TResult> rowMap, 
+      params SqlParameter[] queryParameters)
     {
       return ExecuteCommandFromDefaults(query, command => ExecuteCommandToObjects(command, rowMap), queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result with a single row and converts the row to an object of type <typeparamref name="TResult"/> 
+    /// using the <paramref name="rowMap"/> function. The current options set on  will be used.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the individual result items returned.</typeparam>
+    /// <param name="query">Query to execute. This must be a query with single SELECT result with a single row.</param>
+    /// <param name="rowMap">
+    /// Function that takes an arguement of type IDataRecord and returns <typeparamref name="TResult"/>.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>Single <typeparamref name="TResult"/> or null if no rows returned.</returns>
     public static TResult SelectToObject<TResult>(string query, Func<IDataRecord, TResult> rowMap, params SqlParameter[] queryParameters) where TResult : class
     {
       return ExecuteCommandFromDefaults(query, command => ExecuteCommandToObject(command, rowMap), queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result with a single row with a single column and casts the value of type <typeparamref name="TResult"/>. 
+    /// The current options set on  will be used.
+    /// </summary>
+    /// <typeparam name="TResult">Type of value to be returned. Must be a value type.</typeparam>
+    /// <param name="query">
+    /// Query to execute. This must be a query with single SELECT result with a single row and a single column.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>Value of type <typeparamref name="TResult"/> or default if null or no rows returned.</returns>
     public static TResult SelectValueScalar<TResult>(string query, params SqlParameter[] queryParameters) where TResult : struct
     {
       return ExecuteCommandFromDefaults(query, ExecuteCommandToValueScalar<TResult>, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result with a single row with a single column and casts the value of type <typeparamref name="TResult"/>. 
+    /// The current options set on  will be used.
+    /// </summary>
+    /// <typeparam name="TResult">Type of value to be returned. Must be a value type.</typeparam>
+    /// <param name="query">
+    /// Query to execute. This must be a query with single SELECT result with a single row and a single column.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>Value of type <typeparamref name="TResult"/> or default if null or no rows returned.</returns>
     public static TResult SelectReferenceScalar<TResult>(string query, params SqlParameter[] queryParameters) where TResult : class
     {
       return ExecuteCommandFromDefaults(query, ExecuteCommandToReferenceScalar<TResult>, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns no data. 
+    /// The current options set on  will be used.
+    /// </summary>
+    /// <param name="query">Query to execute. Any data returned will be ignored.</param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
     public static void ExecuteNonQuery(string query, params SqlParameter[] queryParameters)
     {
       ExecuteCommandFromDefaults(query, command => command.ExecuteNonQuery(), queryParameters);
     }
 
-    public static IEnumerable<TResult> SelectToObjects<TResult>(string query, Func<IDataRecord, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result and convert each row to an object of type <typeparamref name="TResult"/> using the 
+    /// <paramref name="rowMap"/> function. Any options passed in <paramref name="options"/> will overide values 
+    /// current options for this execution only.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the individual result items returned.</typeparam>
+    /// <param name="query">Query to execute. This must be a query with single SELECT result.</param>
+    /// <param name="rowMap">
+    /// Function that takes an arguement of type IDataRecord and returns <typeparamref name="TResult"/>.
+    /// </param>
+    /// <param name="options">
+    /// Container for execution options that used to override the current options for this execution.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>List of <typeparamref name="TResult"/></returns>
+    public static IList<TResult> SelectToObjects<TResult>(string query, Func<IDataRecord, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
     {
       return ExecuteCommandFromOptions(query, command => ExecuteCommandToObjects(command, rowMap), options, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result with a single row and converts the row to an object of type <typeparamref name="TResult"/> 
+    /// using the <paramref name="rowMap"/> function. Any options passed in <paramref name="options"/> will 
+    /// overide values current options for this execution only.
+    /// </summary>
+    /// <typeparam name="TResult">Type of the individual result items returned.</typeparam>
+    /// <param name="query">
+    /// Query to execute. This must be a query with single SELECT result with a single row.
+    /// </param>
+    /// <param name="rowMap">
+    /// Function that takes an arguement of type IDataRecord and returns <typeparamref name="TResult"/>.
+    /// </param>
+    /// <param name="options">
+    /// Container for execution options that used to override the current options for this execution.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
+    /// <returns>Single <typeparamref name="TResult"/> or null if no rows returned.</returns>
     public static TResult SelectToObject<TResult>(string query, Func<IDataRecord, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
     {
       return ExecuteCommandFromOptions(query, command => ExecuteCommandToObject(command, rowMap), options, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
+    /// SELECT result with a single row with a single column and casts the value of type <typeparamref name="TResult"/>. 
+    /// Any options passed in <paramref name="options"/> will overide values current options for this execution only.
+    /// </summary>
+    /// <typeparam name="TResult">Type of value to be returned. Must be a reference type.</typeparam>
+    /// <param name="query">
+    /// Query to execute. This must be a query with single SELECT result with a single row and a single column.
+    /// </param>
+    /// <param name="options">
+    /// Container for execution options that used to override the current options for this execution.
+    /// </param>
+    /// <param name="queryParameters">Optional list of SqlParameters. Any parameters with null values will have the 
+    /// value replaced with DBNull.Value.</param>
+    /// <returns>
+    /// Value of type <typeparamref name="TResult"/> or default if null or no rows returned.
+    /// </returns>
     public static TResult SelectValueScalar<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : struct
     {
-      return ExecuteCommandFromOptions(query, command => ExecuteCommandToValueScalar<TResult>(command), options, queryParameters);
+      return ExecuteCommandFromOptions(query, ExecuteCommandToValueScalar<TResult>, options, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single SELECT 
+    /// result with a single row with a single column and casts the value of type <typeparamref name="TResult"/>. 
+    /// Any options passed in <paramref name="options"/> will overide values current options for this execution only.
+    /// </summary>
+    /// <typeparam name="TResult">Type of value to be returned. Must be a reference type.</typeparam>
+    /// <param name="query">
+    /// Query to execute. This must be a query with single SELECT result with a single row and a single column.
+    /// </param>
+    /// <param name="options">
+    /// Container for execution options that used to override the current options for this execution.
+    /// </param>
+    /// <param name="queryParameters">Optional list of SqlParameters. 
+    /// Any parameters with null values will have the value replaced with DBNull.Value.</param>
+    /// <returns>
+    /// Value of type <typeparamref name="TResult"/> or default if null or no rows returned.
+    /// </returns>
     public static TResult SelectReferenceScalar<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
     {
-      return ExecuteCommandFromOptions(query, command => ExecuteCommandToReferenceScalar<TResult>(command), options, queryParameters);
+      return ExecuteCommandFromOptions(query, ExecuteCommandToReferenceScalar<TResult>, options, queryParameters);
     }
 
+    /// <summary>
+    /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns no data. 
+    /// Any options passed in <paramref name="options"/> will overide values current options for this execution only.
+    /// </summary>
+    /// <param name="query">Query to execute. Any data returned will be ignored.</param>
+    /// <param name="options">
+    /// Container for execution options that used to override the current options for this execution.
+    /// </param>
+    /// <param name="queryParameters">
+    /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
+    /// </param>
     public static void ExecuteNonQuery(string query, QueryOptions options, params SqlParameter[] queryParameters)
     {
       ExecuteCommandFromOptions(query, command => command.ExecuteNonQuery(), options, queryParameters);
@@ -137,7 +272,7 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
 
     #region Implementation
 
-    private static IEnumerable<TResult> ExecuteCommandToObjects<TResult>(SqlCommand command, Func<IDataRecord, TResult> rowMap)
+    private static IList<TResult> ExecuteCommandToObjects<TResult>(SqlCommand command, Func<IDataRecord, TResult> rowMap)
     {
       var resultList = new List<TResult>();
       using (var reader = command.ExecuteReader())
@@ -190,21 +325,23 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
       QueryOptions options, params SqlParameter[] queryParameters)
     {
       return ExecuteCommand(query, commandAction, options.ConnectionString ?? ConnectionString, 
-        options.CommandType.HasValue ? options.CommandType.Value : CommandType,
-        options.CommandTimeout.HasValue ? options.CommandTimeout.Value : CommandTimeout, 
+        options.CommandType ?? CommandType,
+        options.CommandTimeout ?? CommandTimeout, 
         queryParameters);
     }
 
     private static TResult ExecuteCommand<TResult>(string query, Func<SqlCommand, TResult> commandAction, 
       string connectionString, CommandType commandType, TimeSpan commandTimeout, params SqlParameter[] queryParameters)
     {
-      using (var connection = new SqlConnection(ConnectionString))
+      using (var connection = new SqlConnection(connectionString))
       {
         connection.Open();
         using (var command = new SqlCommand(query, connection))
         {
-          command.CommandType = CommandType;
-          command.CommandTimeout = (int)CommandTimeout.TotalSeconds;
+          command.CommandType = commandType;
+          command.CommandTimeout = (int)commandTimeout.TotalSeconds;
+          queryParameters = SubstituteDbNullForNullParameterValues(queryParameters);
+          command.Parameters.AddRange(queryParameters);
           return commandAction(command);
         }
       }
@@ -216,28 +353,33 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
       ExecuteCommand(query, commandAction, ConnectionString, CommandType, CommandTimeout, queryParameters);
     }
 
-    private static void ExecuteCommandFromOptions<TResult>(string query, Action<SqlCommand> commandAction,
-      QueryOptions options, params SqlParameter[] queryParameters)
-    {
-      ExecuteCommand(query, commandAction, options.ConnectionString ?? ConnectionString,
-        options.CommandType.HasValue ? options.CommandType.Value : CommandType,
-        options.CommandTimeout.HasValue ? options.CommandTimeout.Value : CommandTimeout,
-        queryParameters);
-    }
-
     private static void ExecuteCommand(string query, Action<SqlCommand> commandAction,
       string connectionString, CommandType commandType, TimeSpan commandTimeout, params SqlParameter[] queryParameters)
     {
-      using (var connection = new SqlConnection(ConnectionString))
+      using (var connection = new SqlConnection(connectionString))
       {
         connection.Open();
         using (var command = new SqlCommand(query, connection))
         {
-          command.CommandType = CommandType;
-          command.CommandTimeout = (int)CommandTimeout.TotalSeconds;
+          command.CommandType = commandType;
+          command.CommandTimeout = (int)commandTimeout.TotalSeconds;
+          queryParameters = SubstituteDbNullForNullParameterValues(queryParameters);
+          command.Parameters.AddRange(queryParameters);
           commandAction(command);
         }
       }
+    }
+
+    private static SqlParameter[] SubstituteDbNullForNullParameterValues(SqlParameter[] queryParameters)
+    {
+      foreach (var queryParameter in queryParameters)
+      {
+        if (queryParameter.Value == null)
+        {
+          queryParameter.Value = DBNull.Value;
+        }
+      }
+      return queryParameters;
     }
 
     #endregion
