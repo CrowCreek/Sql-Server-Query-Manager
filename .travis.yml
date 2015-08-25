@@ -1,2 +1,3 @@
-﻿language: csharp
-solution: SqlServerQueryManager.sln
+language: csharp
+script:
+  - xbuild /p:Configuration=Release SqlServerQueryManager.sln
