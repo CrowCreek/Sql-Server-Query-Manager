@@ -14,26 +14,26 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
   {
     public static void Configure(string connectionString)
     {
-      ConnectionString = connectionString;
+      DefaultConnectionString = connectionString;
     }
 
     public static void Configure(QueryOptions options)
     {
-      ConnectionString = options.ConnectionString;
+      DefaultConnectionString = options.ConnectionString;
       if (options.CommandType.HasValue)
       {
-        CommandType = options.CommandType.Value;
+        DefaultCommandType = options.CommandType.Value;
       }
       if (options.CommandTimeout.HasValue)
       {
-        CommandTimeout = options.CommandTimeout.Value;
+        DefaultCommandTimeout = options.CommandTimeout.Value;
       }
     }
 
     #region Options
 
     private static string _connectionString;
-    public static string ConnectionString
+    public static string DefaultConnectionString
     {
       get
       {
@@ -49,10 +49,10 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
       }
     }
 
-    public static CommandType CommandType { get; set; } = CommandType.StoredProcedure;
+    public static CommandType DefaultCommandType { get; set; } = CommandType.StoredProcedure;
 
     private static TimeSpan _commandTimeout = TimeSpan.FromSeconds(30);
-    public static TimeSpan CommandTimeout
+    public static TimeSpan DefaultCommandTimeout
     {
       get
       {
@@ -318,15 +318,15 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
     private static TResult ExecuteCommandFromDefaults<TResult>(string query, Func<SqlCommand, TResult> commandAction,
       params SqlParameter[] queryParameters)
     {
-      return ExecuteCommand(query, commandAction, ConnectionString, CommandType, CommandTimeout, queryParameters);
+      return ExecuteCommand(query, commandAction, DefaultConnectionString, DefaultCommandType, DefaultCommandTimeout, queryParameters);
     }
 
     private static TResult ExecuteCommandFromOptions<TResult>(string query, Func<SqlCommand, TResult> commandAction,
       QueryOptions options, params SqlParameter[] queryParameters)
     {
-      return ExecuteCommand(query, commandAction, options.ConnectionString ?? ConnectionString, 
-        options.CommandType ?? CommandType,
-        options.CommandTimeout ?? CommandTimeout, 
+      return ExecuteCommand(query, commandAction, options.ConnectionString ?? DefaultConnectionString, 
+        options.CommandType ?? DefaultCommandType,
+        options.CommandTimeout ?? DefaultCommandTimeout, 
         queryParameters);
     }
 
@@ -350,7 +350,7 @@ namespace CrowCreek.Utilities.SqlServerQueryManager
     private static void ExecuteCommandFromDefaults(string query, Action<SqlCommand> commandAction, 
       params SqlParameter[] queryParameters)
     {
-      ExecuteCommand(query, commandAction, ConnectionString, CommandType, CommandTimeout, queryParameters);
+      ExecuteCommand(query, commandAction, DefaultConnectionString, DefaultCommandType, DefaultCommandTimeout, queryParameters);
     }
 
     private static void ExecuteCommand(string query, Action<SqlCommand> commandAction,
