@@ -7,7 +7,7 @@
       CCCCC   R    R   OOOO   W    W     CCCCC   R    R  EEEEEE  EEEEEE  K    K 
 
 # SQL Server Query Manager
-
+![Image of Yaktocat](https://travis-ci.org/liqdfire/Sql-Server-Query-Manager.svg?branch=master)
 ---
 
 ## Overview
