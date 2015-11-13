@@ -44,12 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\FieldReadCastException.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\FieldReadException.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\FieldReadNullValueTypeException.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\IDataRecordExtensions.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\QueryOptions.cs" />
-    <Compile Include="Utilities\SqlServerQueryManager\SqlServerQueryManager.cs" />
+    <Compile Include="Utilities\FieldEnumNotDefinedException.cs" />
+    <Compile Include="Utilities\FieldReadCastException.cs" />
+    <Compile Include="Utilities\FieldReadException.cs" />
+    <Compile Include="Utilities\FieldReadNullValueTypeException.cs" />
+    <Compile Include="Utilities\IDataRecordExtensions.cs" />
+    <Compile Include="Utilities\QueryOptions.cs" />
+    <Compile Include="Utilities\SqlServerQueryManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
