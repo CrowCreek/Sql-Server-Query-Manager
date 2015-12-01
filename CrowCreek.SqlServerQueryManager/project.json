@@ -1,9 +1,9 @@
 ﻿{
   "version": "1.0.0-*",
-  "description": "SQL Server Query Manager",
+  "description": "Crow Creek - SQL Server Query Manager",
   "authors": [ "Hypnovirus, Liqdfire" ],
   "tags": [ "" ],
-  "projectUrl": "",
+  "projectUrl": "https://github.com/CrowCreek/Sql-Server-Query-Manager",
   "licenseUrl": "",
 
   "frameworks": {
