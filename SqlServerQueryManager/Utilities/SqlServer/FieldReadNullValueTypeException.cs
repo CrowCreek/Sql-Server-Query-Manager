@@ -3,7 +3,7 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
 
-namespace CrowCreek.Utilities
+namespace CrowCreek.Utilities.SqlServer
 {
   public class FieldReadNullValueTypeException : FieldReadCastException
   {

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
 
-namespace CrowCreek.Utilities
+using System;
+
+namespace CrowCreek.Utilities.SqlServer
 {
   public class FieldEnumNotDefinedException : FieldReadException
   {

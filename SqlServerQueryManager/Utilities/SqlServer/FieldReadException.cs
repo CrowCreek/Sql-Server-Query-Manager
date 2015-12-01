@@ -5,7 +5,7 @@
 
 using System;
 
-namespace CrowCreek.Utilities
+namespace CrowCreek.Utilities.SqlServer
 {
   public class FieldReadException : Exception
   {

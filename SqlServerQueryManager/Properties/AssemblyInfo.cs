@@ -1,15 +1,13 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SqlServerQueryManager")]
+[assembly: AssemblyTitle("SQL Server Query Manager")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Crow Creek Consulting LLC")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SqlServerQueryManager")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: Guid("a0c8e50a-adee-46b3-a1f5-f1231f678aa4")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: Guid("141f4000-2b45-4974-846a-921281cc6d86")]

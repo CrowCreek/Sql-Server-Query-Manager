@@ -4,15 +4,17 @@
  */
 
 using System;
-using System.Data;
+using System.Data.Common;
+using System.Reflection;
 
-namespace CrowCreek.Utilities
+namespace CrowCreek.Utilities.SqlServer
 {
-  public static class IDataRecordExtensions
+  public static class DbDataReaderExtensions
   {
-    public static TFieldType ReadField<TFieldType>(this IDataRecord dataRecord, string fieldName)
+    public static TFieldType ReadField<TFieldType>(this DbDataReader dataRecord, string fieldName)
     {
       var fieldType = typeof(TFieldType);
+      var fieldTypeInfo = fieldType.GetTypeInfo();
 
       object raw;
       try
@@ -24,9 +26,9 @@ namespace CrowCreek.Utilities
         throw new FieldReadException(fieldName, ex);
       }
       // If the value is an enumeration check that the value from the db is defined in the enum
-      if (fieldType.IsEnum && !Enum.IsDefined(fieldType, raw)) throw new FieldEnumNotDefinedException(fieldName, fieldType, raw.ToString());
+      if (fieldTypeInfo.IsEnum && !Enum.IsDefined(fieldType, raw)) throw new FieldEnumNotDefinedException(fieldName, fieldType, raw.ToString());
       // If we got a null from the database, check to see that we are reading a reference type or a nullable value type, if so return a default of the type
-      if (raw == DBNull.Value && (!fieldType.IsValueType || Nullable.GetUnderlyingType(fieldType) != null))
+      if (raw == DBNull.Value && (!fieldTypeInfo.IsValueType || Nullable.GetUnderlyingType(fieldType) != null))
       {
         return default(TFieldType);
       }

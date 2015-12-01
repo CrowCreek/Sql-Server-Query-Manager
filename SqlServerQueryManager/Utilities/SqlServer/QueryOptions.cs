@@ -6,7 +6,7 @@
 using System;
 using System.Data;
 
-namespace CrowCreek.Utilities
+namespace CrowCreek.Utilities.SqlServer
 {
   public class QueryOptions
   {

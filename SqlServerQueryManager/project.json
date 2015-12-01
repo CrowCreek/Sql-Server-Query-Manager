@@ -1,0 +1,26 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "SQL Server Query Manager",
+  "authors": [ "Hypnovirus, Liqdfire" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0"
+      }
+    },
+    "dotnet": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23409",
+        "System.Collections": "4.0.11-beta-23409",
+        "System.Linq": "4.0.1-beta-23409",
+        "System.Runtime": "4.0.21-beta-23409",
+        "System.Threading": "4.0.11-beta-23409",
+        "System.Data.SqlClient": "4.0.0-beta-23409"
+      }
+    }
+  }
+}

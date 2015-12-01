@@ -6,9 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 
-namespace CrowCreek.Utilities
+namespace CrowCreek.Utilities.SqlServer
 {
   public class SqlServerQueryManager
   {
@@ -31,7 +32,7 @@ namespace CrowCreek.Utilities
     /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
     /// </param>
     /// <returns>List of <typeparamref name="TResult"/></returns>
-    public static IList<TResult> SelectToObjects<TResult>(string query, Func<IDataRecord, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
+    public static IList<TResult> SelectToObjects<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
     {
       return ExecuteCommand(query, command => ExecuteCommandToObjects(command, rowMap), options, queryParameters);
     }
@@ -56,7 +57,7 @@ namespace CrowCreek.Utilities
     /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
     /// </param>
     /// <returns>Single <typeparamref name="TResult"/> or null if no rows returned.</returns>
-    public static TResult SelectToObject<TResult>(string query, Func<IDataRecord, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
+    public static TResult SelectToObject<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
     {
       return ExecuteCommand(query, command => ExecuteCommandToObject(command, rowMap), options, queryParameters);
     }
@@ -125,7 +126,7 @@ namespace CrowCreek.Utilities
 
     #region Implementation
 
-    private static IList<TResult> ExecuteCommandToObjects<TResult>(SqlCommand command, Func<IDataRecord, TResult> rowMap)
+    private static IList<TResult> ExecuteCommandToObjects<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap)
     {
       var resultList = new List<TResult>();
       using (var reader = command.ExecuteReader())
@@ -138,7 +139,7 @@ namespace CrowCreek.Utilities
       return resultList;
     }
 
-    private static TResult ExecuteCommandToObject<TResult>(SqlCommand command, Func<IDataRecord, TResult> rowMap) where TResult : class
+    private static TResult ExecuteCommandToObject<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap) where TResult : class
     {
       using (var reader = command.ExecuteReader())
       {
