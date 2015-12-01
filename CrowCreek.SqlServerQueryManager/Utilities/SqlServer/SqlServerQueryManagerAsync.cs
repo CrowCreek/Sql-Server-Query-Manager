@@ -8,11 +8,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CrowCreek.Utilities.SqlServer
 {
-  public partial class SqlServerQueryManager
-  {
+    public partial class SqlServerQueryManager
+    {
     #region Sync Methods
     /// <summary>
     /// Executes <paramref name="query"/> with parameters <paramref name="queryParameters"/> that returns a single 
@@ -32,9 +34,9 @@ namespace CrowCreek.Utilities.SqlServer
     /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
     /// </param>
     /// <returns>List of <typeparamref name="TResult"/></returns>
-    public static IList<TResult> SelectToObjects<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
+    public static Task<IEnumerable<TResult>> SelectToObjectsAsync<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters)
     {
-      return ExecuteCommand(query, command => ExecuteCommandToObjects(command, rowMap), options, queryParameters);
+      return ExecuteCommandAsync(query, command => ExecuteCommandToObjectsAsync(command, rowMap), options, queryParameters);
     }
 
     /// <summary>
@@ -57,9 +59,9 @@ namespace CrowCreek.Utilities.SqlServer
     /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
     /// </param>
     /// <returns>Single <typeparamref name="TResult"/> or null if no rows returned.</returns>
-    public static TResult SelectToObject<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
+    public static Task<TResult> SelectToObjectAsync<TResult>(string query, Func<DbDataReader, TResult> rowMap, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
     {
-      return ExecuteCommand(query, command => ExecuteCommandToObject(command, rowMap), options, queryParameters);
+      return ExecuteCommandAsync(query, command => ExecuteCommandToObjectAsync(command, rowMap), options, queryParameters);
     }
 
     /// <summary>
@@ -79,9 +81,9 @@ namespace CrowCreek.Utilities.SqlServer
     /// <returns>
     /// Value of type <typeparamref name="TResult"/> or default if null or no rows returned.
     /// </returns>
-    public static TResult SelectValueScalar<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : struct
+    public static Task<TResult> SelectValueScalarAsync<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : struct
     {
-      return ExecuteCommand(query, ExecuteCommandToValueScalar<TResult>, options, queryParameters);
+      return ExecuteCommandAsync(query, ExecuteCommandToScalarAsync<TResult>, options, queryParameters);
     }
 
     /// <summary>
@@ -101,9 +103,9 @@ namespace CrowCreek.Utilities.SqlServer
     /// <returns>
     /// Value of type <typeparamref name="TResult"/> or default if null or no rows returned.
     /// </returns>
-    public static TResult SelectReferenceScalar<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
+    public static Task<TResult> SelectReferenceScalarAsync<TResult>(string query, QueryOptions options, params SqlParameter[] queryParameters) where TResult : class
     {
-      return ExecuteCommand(query, ExecuteCommandToReferenceScalar<TResult>, options, queryParameters);
+      return ExecuteCommandAsync(query, ExecuteCommandToReferenceScalarAsync<TResult>, options, queryParameters);
     }
 
     /// <summary>
@@ -117,21 +119,21 @@ namespace CrowCreek.Utilities.SqlServer
     /// <param name="queryParameters">
     /// Optional list of SqlParameters. Any parameters with null values will have the value replaced with DBNull.Value.
     /// </param>
-    public static void ExecuteNonQuery(string query, QueryOptions options, params SqlParameter[] queryParameters)
+    public static Task<int> ExecuteNonQueryAsync(string query, QueryOptions options, params SqlParameter[] queryParameters)
     {
-      ExecuteCommand(query, command => command.ExecuteNonQuery(), options, queryParameters);
+      return ExecuteCommandAsync(query, command => command.ExecuteNonQueryAsync() , options, queryParameters);
     }
 
     #endregion
 
     #region Implementation
 
-    private static IList<TResult> ExecuteCommandToObjects<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap)
+    private async static Task<IEnumerable<TResult>> ExecuteCommandToObjectsAsync<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap)
     {
       var resultList = new List<TResult>();
-      using (var reader = command.ExecuteReader())
+      using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
       {
-        while (reader.Read())
+        while (await reader.ReadAsync().ConfigureAwait(false))
         {
           resultList.Add(rowMap(reader));
         }
@@ -139,11 +141,11 @@ namespace CrowCreek.Utilities.SqlServer
       return resultList;
     }
 
-    private static TResult ExecuteCommandToObject<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap) where TResult : class
+    private async static Task<TResult> ExecuteCommandToObjectAsync<TResult>(SqlCommand command, Func<DbDataReader, TResult> rowMap) where TResult : class
     {
-      using (var reader = command.ExecuteReader())
+      using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
       {
-        if (reader.Read())
+        if (await reader.ReadAsync().ConfigureAwait(false))
         {
           return rowMap(reader);
         }
@@ -151,9 +153,9 @@ namespace CrowCreek.Utilities.SqlServer
       }
     }
 
-    private static TResult ExecuteCommandToValueScalar<TResult>(SqlCommand command) where TResult : struct
+    private async static Task<TResult> ExecuteCommandToScalarAsync<TResult>(SqlCommand command)
     {
-      var rawResult = command.ExecuteScalar();
+      var rawResult = await command.ExecuteScalarAsync().ConfigureAwait(false);
       try
       {
         return (TResult)rawResult;
@@ -164,55 +166,26 @@ namespace CrowCreek.Utilities.SqlServer
       }
     }
 
-    private static TResult ExecuteCommandToReferenceScalar<TResult>(SqlCommand command) where TResult : class
+    private async static Task<TResult> ExecuteCommandToReferenceScalarAsync<TResult>(SqlCommand command) where TResult : class
     {
-      return command.ExecuteScalar() as TResult;
+      return await command.ExecuteScalarAsync().ConfigureAwait(false) as TResult;
     }
 
-    private static TResult ExecuteCommand<TResult>(string query, Func<SqlCommand, TResult> commandAction, QueryOptions options, params SqlParameter[] queryParameters)
+    private async static Task<TResult> ExecuteCommandAsync<TResult>(string query, Func<SqlCommand, Task<TResult>> commandAction, QueryOptions options, params SqlParameter[] queryParameters)
     {
       if (options == null) throw new ArgumentException("options cannot be null");
       using (var connection = new SqlConnection(options.ConnectionString))
       {
-        connection.Open();
+        await connection.OpenAsync().ConfigureAwait(false);
         using (var command = new SqlCommand(query, connection))
         {
           command.CommandType = options.CommandType;
           command.CommandTimeout = (int)options.CommandTimeout.TotalSeconds;
           queryParameters = SubstituteDbNullForNullParameterValues(queryParameters);
           command.Parameters.AddRange(queryParameters);
-          return commandAction(command);
+          return await commandAction(command).ConfigureAwait(false);
         }
       }
-    }
-
-    private static void ExecuteCommand(string query, Action<SqlCommand> commandAction, QueryOptions options, params SqlParameter[] queryParameters)
-    {
-      if (options == null) throw new ArgumentException("options cannot be null");
-      using (var connection = new SqlConnection(options.ConnectionString))
-      {
-        connection.Open();
-        using (var command = new SqlCommand(query, connection))
-        {
-          command.CommandType = options.CommandType;
-          command.CommandTimeout = (int)options.CommandTimeout.TotalSeconds;
-          queryParameters = SubstituteDbNullForNullParameterValues(queryParameters);
-          command.Parameters.AddRange(queryParameters);
-          commandAction(command);
-        }
-      }
-    }
-
-    private static SqlParameter[] SubstituteDbNullForNullParameterValues(SqlParameter[] queryParameters)
-    {
-      foreach (var queryParameter in queryParameters)
-      {
-        if (queryParameter.Value == null)
-        {
-          queryParameter.Value = DBNull.Value;
-        }
-      }
-      return queryParameters;
     }
     #endregion
   }
