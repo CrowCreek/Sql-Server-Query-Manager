@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-*",
+  "version": "1.0.1-*",
   "description": "Crow Creek - SQL Server Query Manager",
   "authors": [ "Hypnovirus, Liqdfire" ],
   "tags": [ "" ],
@@ -7,6 +7,11 @@
   "licenseUrl": "",
 
   "frameworks": {
+    "net452": {
+      "frameworkAssemblies": {
+        "System.Data": "4.0.0.0"
+      }
+    },
     "dnx451": {
       "frameworkAssemblies": {
         "System.Data": "4.0.0.0"
