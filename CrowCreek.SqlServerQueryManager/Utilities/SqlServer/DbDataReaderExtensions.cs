@@ -15,6 +15,7 @@ namespace CrowCreek.Utilities.SqlServer
     {
       var fieldType = typeof(TFieldType);
       var fieldTypeInfo = fieldType.GetTypeInfo();
+      var nullableUnderlying = Nullable.GetUnderlyingType(fieldType);
 
       object raw;
       try
@@ -28,12 +29,13 @@ namespace CrowCreek.Utilities.SqlServer
       // If the value is an enumeration check that the value from the db is defined in the enum
       if (fieldTypeInfo.IsEnum && !Enum.IsDefined(fieldType, raw)) throw new FieldEnumNotDefinedException(fieldName, fieldType, raw.ToString());
       // If we got a null from the database, check to see that we are reading a reference type or a nullable value type, if so return a default of the type
-      if (raw == DBNull.Value && (!fieldTypeInfo.IsValueType || Nullable.GetUnderlyingType(fieldType) != null))
+      if (raw == DBNull.Value && (!fieldTypeInfo.IsValueType || nullableUnderlying != null))
       {
         return default(TFieldType);
       }
       try
       {
+        if (nullableUnderlying != null && nullableUnderlying.IsEnum) return (TFieldType)Enum.ToObject(nullableUnderlying, raw);
         return (TFieldType)raw;
       }
       catch (InvalidCastException ex)
