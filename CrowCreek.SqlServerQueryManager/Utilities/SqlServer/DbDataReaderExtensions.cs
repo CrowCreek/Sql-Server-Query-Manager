@@ -35,7 +35,7 @@ namespace CrowCreek.Utilities.SqlServer
       }
       try
       {
-        if (nullableUnderlying != null && nullableUnderlying.IsEnum) return (TFieldType)Enum.ToObject(nullableUnderlying, raw);
+        if (nullableUnderlying != null && nullableUnderlying.GetTypeInfo().IsEnum) return (TFieldType)Enum.ToObject(nullableUnderlying, raw);
         return (TFieldType)raw;
       }
       catch (InvalidCastException ex)
